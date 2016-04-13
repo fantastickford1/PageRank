@@ -22,27 +22,28 @@ public class Controller implements Initializable{
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+        //Archivo .html a ser leido, puede ser remplazado por un file chooser
         File input = new File("/D:/Mis documentos/GitHub/PageRank/out/production/PageRank/Websites/Preventas_Cinepolis.html");
         Document doc = null;
         try {
-            doc= Jsoup.parse(input,"UTF-8");
+            doc= Jsoup.parse(input,"UTF-8"); //Parseo del documento html
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Elements links = doc.select("a[href]");
-        Elements  pngs = doc.select("img[src$=.png]");
-        Element masthead = doc.select("div.masthead").first();
+        Elements links = doc.select("a[href]"); //Seleccion de las etiquetas a con href
+//        Elements  pngs = doc.select("img[src$=.png]");//Seleccion de las etiquetas img
+//        Element masthead = doc.select("div.masthead").first(); //No idea
         int count = 0;
-        for (Element link: links) {
-            System.out.println("link : " + link.attr("href"));
+        for (Element link: links) {  //foreach para recorrer los links obtenidos
+            System.out.println("link : " + link.attr("href")); //Se imprime el link .attr limpia el link de hreft="http:/www...." a http:/www....
             String thelink = link.attr("href");
-            String regex = "^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
-            if (thelink.matches(regex)){
-                count++;
+            String regex = "^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"; //regex para filtrar aquellos links que empiezan con http
+            if (thelink.matches(regex)){ //filtro
+                count++; //contador de links
             }
-            System.out.println("text : " + link.text());
+            System.out.println("text : " + link.text()); //Nombre del link
         }
-        System.out.println("Links:::" + count);
+        System.out.println("Links:::" + count); //Numero de links
     }
 
 

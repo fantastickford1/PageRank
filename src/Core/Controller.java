@@ -12,6 +12,7 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable{
@@ -19,31 +20,123 @@ public class Controller implements Initializable{
     @FXML
     TextArea textArea;
 
+    String Popu[][];
+    String linkTable[][];
+    String NoLinkPerPage[][];
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        //Archivo .html a ser leido, puede ser remplazado por un file chooser
-        File input = new File("/D:/Mis documentos/GitHub/PageRank/out/production/PageRank/Websites/Preventas_Cinepolis.html");
-        Document doc = null;
-        try {
-            doc= Jsoup.parse(input,"UTF-8"); //Parseo del documento html
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Elements links = doc.select("a[href]"); //Seleccion de las etiquetas a con href
-//        Elements  pngs = doc.select("img[src$=.png]");//Seleccion de las etiquetas img
-//        Element masthead = doc.select("div.masthead").first(); //No idea
-        int count = 0;
-        for (Element link: links) {  //foreach para recorrer los links obtenidos
-            System.out.println("link : " + link.attr("href")); //Se imprime el link .attr limpia el link de hreft="http:/www...." a http:/www....
-            String thelink = link.attr("href");
-            String regex = "^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"; //regex para filtrar aquellos links que empiezan con http
-            if (thelink.matches(regex)){ //filtro
-                count++; //contador de links
+
+        ArrayList<String> AllLinks = new ArrayList<>();
+        File input = new File("src/Websitess");
+        File allWeb[] = input.listFiles();
+        linkTable = new String[allWeb.length][allWeb.length+1];
+        int countFileAux =0;
+        for (File webpage : allWeb) {
+            int linkcountAux=0;
+            Document doc = null;
+            try {
+                doc= Jsoup.parse(webpage,"UTF-8"); //Parseo del documento html
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            System.out.println("text : " + link.text()); //Nombre del link
+            Elements title = doc.select("title");
+            Element tit = title.first();
+            String pageName = tit.text(); //nombre de la pagina
+            linkTable[countFileAux][linkcountAux] = pageName; //[wikipedia][][][][]
+            linkcountAux++;
+            Elements links = doc.select("a[href");
+            for (Element link : links) {
+                String thelink;
+                thelink = link.attr("href");
+                if (!thelink.equals(pageName)){
+                    AllLinks.add(thelink);
+                    linkTable[countFileAux][linkcountAux] = thelink; //[wikipedia][link1][link2][link3][0]
+                    linkcountAux++;
+                }
+            }
+            countFileAux++;
         }
-        System.out.println("Links:::" + count); //Numero de links
+        Popu = new String[allWeb.length][2];
+        int count = 0;
+        int aux = 0;
+        for (File webpage : allWeb) {
+            Document doc = null;
+            try {
+                doc= Jsoup.parse(webpage,"UTF-8"); //Parseo del documento html
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Elements title = doc.select("title");
+            Element tit = title.first();
+            String pageName = tit.text();
+            for (String link : AllLinks) {
+                if (pageName.equals(link)){
+                    count++;
+                }
+            }
+            Popu[aux][0] = pageName;
+            Popu[aux][1] = count+"";
+            aux++;
+            count=0;
+        }
+        //////////////////////////////////////////////////////
+        int aux2 =0;
+        NoLinkPerPage = new String[linkTable.length][2];
+        for (int q = 0; q < linkTable.length; q++) {
+            NoLinkPerPage[q][0] = linkTable[q][0];
+            for (int w = 1; w < linkTable[0].length; w++) {
+                if(linkTable[q][w] != null)
+                    aux2++;
+            }
+            NoLinkPerPage[q][1] = aux2+"";
+            aux2=0;
+        }
+
+
+        //////////////////////////////////////////////////////
+        for (int i = 0; i < Popu.length; i++) {
+            String currentPage = Popu[i][0]; //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            System.out.println(currentPage +":");
+            double status = 0;
+            for (int j = 0; j < linkTable.length; j++) {
+                String outlaw = linkTable[j][0];
+                if (!outlaw.equals(currentPage)){
+                    for (int k = 1; k < linkTable[0].length; k++) {
+                        String linkedPage = linkTable[j][k];
+                        if (linkedPage != null){
+                            if (linkedPage.equals(currentPage)){
+                                for (int q = 0; q < NoLinkPerPage.length; q++) {
+                                    String thispage = NoLinkPerPage[q][0];
+                                    if (thispage.equals(outlaw)){
+                                        double auxCont = Double.parseDouble(NoLinkPerPage[q][1]);
+                                        double auxstatus = 1/auxCont;
+                                        for (int p = 0; p < Popu.length; p++) {
+                                            String auxString = Popu[p][0];
+                                            if (auxString.equals(outlaw)){
+                                                int auxCo = Integer.parseInt(Popu[p][1]);
+                                                auxstatus= auxCo*auxstatus;
+                                                status = status + auxstatus;
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+            }
+            System.out.println(status);
+
+        }
+
+
+
     }
 
 
